@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Vaults{% endblock %}
+{% block content %}
+<h2>Your Vaults</h2>
+<a href="{{ url_for('create_vault') }}" class="btn btn-success mb-3">Create New Vault</a>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Vault Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for vault in current_user.vaults %}
+        <tr>
+            <td><a href="{{ url_for('vault', vault_id=vault.id) }}">{{ vault.name }}</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

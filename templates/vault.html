@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Vault{% endblock %}
+{% block content %}
+<h2>{{ vault.name }}</h2>
+<h3>Passwords</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Website</th>
+            <th>Password</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for password in passwords %}
+        <tr>
+            <td>{{ password.website }}</td>
+            <td>{{ password.password }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3>Add New Password</h3>
+<form method="POST" action="{{ url_for('vault', vault_id=vault.id) }}">
+    <div class="form-group">
+        <label for="website">Website</label>
+        <input type="text" class="form-control" id="website" name="website" required>
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" class="form-control" id="password" name="password" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Password</button>
+</form>
+{% endblock %}

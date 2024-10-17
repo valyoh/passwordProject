@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Manage Users{% endblock %}
+{% block content %}
+<h2>Manage Users</h2>
+<!-- Button to Add New User -->
+<a href="{{ url_for('admin') }}" class="btn btn-primary mb-3">Add New User</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Assigned Vaults</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.username }}</td>
+            <td>{{ user.role }}</td>
+            <td>
+                {% if user.vaults %}
+                   <ul>
+                        {% for vault in user.vaults %}
+                            <li>
+                                {{ vault.name }}
+                                <div class="button-container">
+                                    <form action="{{ url_for('unassign_vault', user_id=user.id, vault_id=vault.id) }}" method="POST" style="display:inline;">
+                                        <button type="submit" class="btn btn-danger btn-sm">Unassign</button>
+                                    </form>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+
+                {% else %}
+                    No Vaults Assigned
+                {% endif %}
+            </td>
+            <td>
+                <a href="{{ url_for('edit_user', user_id=user.id) }}" class="btn btn-warning btn-sm">Edit</a>
+                <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+                <a href="{{ url_for('assign_vault', user_id=user.id) }}" class="btn btn-primary btn-sm">Assign Vault</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

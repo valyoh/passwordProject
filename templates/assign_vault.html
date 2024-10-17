@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Assign Vault{% endblock %}
+{% block content %}
+<h2>Assign Vault to {{ user.username }}</h2>
+<form method="POST" action="{{ url_for('assign_vault', user_id=user.id) }}">
+    <div class="form-group">
+        <label for="vault_id">Select Vault</label>
+        <select id="vault_id" name="vault_id" class="form-control">
+            {% for vault in vaults %}
+                <option value="{{ vault.id }}">{{ vault.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Assign Vault</button>
+</form>
+{% endblock %}
