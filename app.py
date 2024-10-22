@@ -4,18 +4,35 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from flask_migrate import Migrate  # Import Flask-Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+import configparser
 
 app = Flask(__name__)
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://iamadmin:SuperSecret#1@VHR/passdb?driver=ODBC+Driver+17+for+SQL+Server'
-app.config['SECRET_KEY'] = 'your_secret_key'
 
+# Load configuration from the db_config.ini file
+config = configparser.ConfigParser()
+config.read('db_config.ini')
+
+# Extract database connection information
+db_username = config['database']['username']
+db_password = config['database']['password']
+db_host = config['database']['host']
+db_port = config['database'].get('port', '1433')  # Default to 1433 for SQL Server
+db_name = config['database']['database']
+db_driver = config['database']['driver']
+
+# Construct the SQLAlchemy Database URI
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+    f"mssql+pyodbc://{db_username}:{db_password}@{db_host}:{db_port}/{db_name}?driver={db_driver}"
+)
+app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize extensions
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)  # Initialize Flask-Migrate
+migrate = Migrate(app, db)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-
 
 
 # Models

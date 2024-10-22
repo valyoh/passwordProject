@@ -68,16 +68,16 @@ Werkzeug
 
 pip install -r requirements.txt
 
-4. Configure the Database
-Set up the database using Flask-Migrate.
-# Initialize the migrations folder
-flask db init
-
-# Generate the initial migration script
-flask db migrate -m "Initial migration"
-
-# Apply the migration to create the database tables
-flask db upgrade
+## Setting Up the Database Config
+4. Database setup
+4.1. Copy the `db_config.example.ini` file to `db_config.ini`.
+4.2. Fill in the appropriate values for your database connection:
+   - `username`: Your database username
+   - `password`: Your database password
+   - `host`: Database host (e.g., `localhost`)
+   - `database`: The name of your database
+   - `driver`: ODBC driver for SQL Server (e.g., `ODBC Driver 17 for SQL Server`)
+4.3. The `db_config.ini` file is ignored by version control to protect sensitive information.
 
 5. Create an Admin User
 Run the application once to set up the initial database and create an admin user:
