@@ -35,7 +35,7 @@ class User(db.Model, UserMixin):
 
 class Vault(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(150), nullable=False)
+    name = db.Column(db.String(150), nullable=False, unique=True)  # Add unique=True
     # Relationship to User is defined via the user_vaults association table
 
 class Password(db.Model):
@@ -68,6 +68,13 @@ def root():
 def create_vault():
     if request.method == 'POST':
         vault_name = request.form['vault_name']
+
+        # Check if a vault with the same name already exists
+        existing_vault = Vault.query.filter_by(name=vault_name).first()
+        if existing_vault:
+            flash('Vault name already exists. Please choose a different name.')
+            return redirect(url_for('create_vault'))
+
         new_vault = Vault(name=vault_name)
 
         # Add the new vault to the database
@@ -82,6 +89,7 @@ def create_vault():
         return redirect(url_for('vaults'))
 
     return render_template('create_vault.html')
+
 
 
 @app.route('/vaults')
