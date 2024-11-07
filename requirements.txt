@@ -1,6 +1,11 @@
-Flask
+Flask~=3.0.3
 Flask-SQLAlchemy
-Flask-Login
-Flask-Migrate
-Werkzeug
+Flask-Login~=0.6.3
+Flask-Migrate~=4.0.7
+Werkzeug~=3.0.4
 pyodbc
+
+python-nmap~=0.7.1
+alembic~=1.13.3
+SQLAlchemy~=2.0.36
+scapy~=2.6.1

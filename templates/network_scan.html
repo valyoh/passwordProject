@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Network Devices{% endblock %}
+
+{% block content %}
+    <h1 class="mb-4">Devices on the Network</h1>
+
+    <form class="form-inline mb-4" method="get" action="{{ url_for('scan_network_route') }}">
+        <label class="sr-only" for="networkRange">Network Range</label>
+        <input type="text" class="form-control mr-2" id="networkRange" name="network_range" placeholder="e.g. 192.168.1.0/24" value="{{ request.args.get('network_range', '192.168.1.0/24') }}">
+        <button type="submit" class="btn btn-primary">Scan Network</button>
+    </form>
+
+    {% if devices %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>IP Address</th>
+                        <th>Hostname</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in devices %}
+                    <tr>
+                        <td>{{ device.ip }}</td>
+                        <td>{{ device.hostname }}</td>
+                        <td>{{ device.state | capitalize }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            No devices found or scan not initiated.
+        </div>
+    {% endif %}
+
+
+{% endblock %}

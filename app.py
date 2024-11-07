@@ -1,10 +1,17 @@
+import configparser
+from datetime import datetime
+
 from flask import Flask, render_template, redirect, url_for, request, flash
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_migrate import Migrate  # Import Flask-Migrate
+from flask_sqlalchemy import SQLAlchemy
+from scapy.layers.inet import IP, ICMP
+from scapy.layers.l2 import ARP, Ether
+from scapy.sendrecv import srp, sr1
+import threading
+from ipaddress import ip_network
+from concurrent.futures import ThreadPoolExecutor
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
-import configparser
 
 app = Flask(__name__)
 
@@ -73,6 +80,19 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # Routes
+@app.route('/network_scan', methods=['GET'])
+@login_required
+def scan_network_route():
+    devices = []
+    network_range = request.args.get('network_range')  # Get network range from the request
+
+    # Only perform scan if network range is provided
+    if network_range:
+        devices = scan_network(network_range)  # Use the new Scapy scan function
+
+    return render_template('network_scan.html', devices=devices, network_range=network_range)
+
+
 @app.route('/')
 def root():
     if current_user.is_authenticated:
@@ -362,6 +382,51 @@ def delete_password(password_id):
     flash('Credential deleted successfully.')
     return redirect(url_for('dashboard'))
 
+# Define a lock for thread-safe print statements or list updates
+lock = threading.Lock()
+
+# Function to perform an ICMP ping scan on a single IP address
+def icmp_ping(ip):
+    ip_packet = IP(dst=str(ip)) / ICMP()
+    response = sr1(ip_packet, timeout=0.5, verbose=0)
+    if response:
+        with lock:
+            return {'ip': str(ip), 'hostname': "Unknown (ICMP)", 'state': "Online (ICMP)"}
+    return None
+
+def scan_network(network_range):
+    devices = []
+
+    # 1. Perform ARP scan to quickly identify devices in the local subnet
+    arp = ARP(pdst=network_range)
+    ether = Ether(dst="ff:ff:ff:ff:ff:ff")
+    packet = ether / arp
+    arp_result = srp(packet, timeout=1, verbose=0)[0]
+
+    for sent, received in arp_result:
+        devices.append({
+            'ip': received.psrc,
+            'hostname': received.hwsrc,
+            'state': "Online (ARP)"
+        })
+
+    # 2. Perform multithreaded ICMP scan for remaining devices in the network range
+    all_ips = [str(ip) for ip in ip_network(network_range).hosts()]
+    scanned_ips = {device['ip'] for device in devices}  # Track ARP-scanned IPs to avoid duplicate ICMP scans
+
+    # Filter out IPs that were already found with ARP
+    icmp_targets = [ip for ip in all_ips if ip not in scanned_ips]
+
+    # Use ThreadPoolExecutor to scan with ICMP in parallel
+    with ThreadPoolExecutor(max_workers=50) as executor:
+        results = list(executor.map(icmp_ping, icmp_targets))
+
+    # Append results from ICMP scan that returned positive responses
+    for result in results:
+        if result:
+            devices.append(result)
+
+    return devices
 
 if __name__ == '__main__':
     with app.app_context():
